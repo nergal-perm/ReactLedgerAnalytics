@@ -7,14 +7,18 @@
   "scripts": {
     "start-work": "cross-env NODE_ENV=work npm start",
     "start-home": "cross-env NODE_ENV=home npm start",
+    "start-work-mock": "cross-env NODE_ENV=work npm run start-mock",
+    "start-home-mock": "cross-env NODE_ENV=home npm run start-mock",    
     "start": "concurrently \"npm run server\" \"npm run client\"",
+    "start-mock": "concurrently \"json-server --watch .\\server\\mock-data.json --port 3001\" \"npm run client\"",
     "server": "nodemon server\\app.js",
     "client": "babel-node start-client.js"
   },
   "author": "Eugene Terekhov",
   "license": "ISC",
   "devDependencies": {
-    "concurrently": "^3.1.0"
+    "concurrently": "^3.1.0",
+    "json-server": "^0.9.4"
   },
   "dependencies": {
     "babel-cli": "^6.18.0",
