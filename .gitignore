@@ -10,3 +10,7 @@ npm-debug.log
 #Sublime
 *.sublime-project
 *.sublime-workspace
+
+#local configs
+local-home.json
+local-work.json
