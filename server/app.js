@@ -20,3 +20,8 @@ app.get('/api/welcome', (req, res) => {
 app.listen(app.get('port'), () => {
   console.log(`Find the server at: http://localhost:${app.get('port')}/`); // eslint-disable-line no-console
 });
+
+function sendJsonResponse(res, status, content) {
+	res.status(status);
+	res.json(content);
+}

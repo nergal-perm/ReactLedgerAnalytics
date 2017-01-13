@@ -25,6 +25,100 @@
 			"amount": -120.00,
 			"currency": "руб"
 		}]
+	}, {
+		"id": 3,
+		"date": 1483401600000,
+		"payee": "Торгово-развлекательные центры",
+		"legs": [{
+			"categories": ["Расходы", "Развлечения", "Культурные мероприятия"],
+			"amount": 500.00,
+			"currency": "руб"
+		}, {
+			"categories": ["Доходы","Ленкин доход"],
+			"amount": -500.00,
+			"currency": "руб"
+		}]
+	}, {
+		"id": 4,
+		"date": 1483401600000,
+		"payee": "БЛС",
+		"legs": [{
+			"categories": ["Инвестиции", "БКС"],
+			"amount": 3,
+			"currency": "БКС-Технологии",
+			"currencyBase": "руб",
+			"rateToBase": 3271.42
+		}, {
+			"categories": ["Расходы","Прочие расходы", "Комиссии"],
+			"amount": 15.00,
+			"currency": "руб"
+		}, {
+			"categories": ["Активы", "БКС VISA 9952"],
+			"amount": -9829.62,
+			"currency": "руб"
+		}]
+	}, {
+		"id": 5,
+		"date": 1483401600000,
+		"payee": "Работодатель",
+		"legs": [{
+			"categories": ["Доходы","Активный доход", "Заработная плата"],
+			"amount": -45000.00,
+			"currency": "руб"
+		}, {
+			"categories": ["Активы", "Наличные"],
+			"amount": 45000.00,
+			"currency": "руб"
+		}]
 	}],
-	"prices": []
+	"prices": [{
+		"test":"test"
+	}],
+	"totalsByMonth":[{
+		"id": 201701,
+		"date": {
+			"year": 2017,
+			"month": 1
+		},
+		"activeIncome": 100000,
+		"rentIncome": 5000,
+		"passiveIncomeTotal": 400,
+		"passiveIncomeFixed": 150,
+		"spouseIncome": 1000,
+		"expenses": 30000,
+		"investments": 22000,
+		"marketValue": 88000,
+		"netWorth": 150000
+	}, {
+		"id": 201702,
+		"date": {
+			"year": 2017,
+			"month": 2
+		},
+		"activeIncome": 100000,
+		"rentIncome": 5000,
+		"passiveIncomeTotal": 400,
+		"passiveIncomeFixed": 150,
+		"spouseIncome": 1000,
+		"expenses": 30000,
+		"investments": 22000,
+		"marketValue": 88000,
+		"netWorth": 150000
+	}, {
+		"id": 201703,
+		"date": {
+			"year": 2017,
+			"month": 3
+		},		
+		"activeIncome": 100000,
+		"rentIncome": 5000,
+		"passiveIncomeTotal": 400,
+		"passiveIncomeFixed": 150,
+		"spouseIncome": 1000,
+		"expenses": 30000,
+		"investments": 22000,
+		"marketValue": 88000,
+		"netWorth": 150000
+	}
+	]
 }
