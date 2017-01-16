@@ -1,53 +1,5 @@
 import React, { Component } from 'react';
 
-var totalsByMonth = [{
-  id: 201701,
-  date: {
-    year: 2017,
-    month: 1
-  },
-  activeIncome: 100000,
-  rentIncome: 5000,
-  passiveIncomeTotal: 400,
-  passiveIncomeFixed: 150,
-  spouseIncome: 1000,
-  expenses: 30000,
-  investments: 22000,
-  marketValue: 88000,
-  netWorth: 150000
-}, {
-  id: 201702,
-  date: {
-    year: 2016,
-    month: 2
-  },
-  activeIncome: 50000,
-  rentIncome: 5000,
-  passiveIncomeTotal: 400,
-  passiveIncomeFixed: 150,
-  spouseIncome: 1000,
-  expenses: 30000,
-  investments: 22000,
-  marketValue: 88000,
-  netWorth: 150000
-}, {
-  id: 201703,
-  date: {
-    year: 2017,
-    month: 3
-  },    
-  activeIncome: 125000,
-  rentIncome: 5000,
-  passiveIncomeTotal: 400,
-  passiveIncomeFixed: 150,
-  spouseIncome: 1000,
-  expenses: 30000,
-  investments: 22000,
-  marketValue: 88000,
-  netWorth: 150000
-}];
-
-
 class App extends Component {
   render() {
     return (
@@ -66,8 +18,12 @@ class PivotTableByYear extends Component {
   }
 
   handleUserInput(event) {
-    this.setState({
-      year:parseInt(event.target.value, 10)
+    var stateYear = parseInt(event.target.value, 10);
+    getTotalsByMonth(stateYear, (yearData) => {
+      this.setState({
+        year:stateYear,
+        totalsByMonth: yearData
+      });      
     });
   }
 
@@ -75,7 +31,7 @@ class PivotTableByYear extends Component {
     return (
       <div>
         <YearFilter stateYear={this.state.year} onUserInput={this.handleUserInput}/>
-        <TotalsTable yearData={totalsByMonth} stateYear={this.state.year}/>
+        <TotalsTable yearData={this.state.totalsByMonth} stateYear={this.state.year}/>
       </div>
     );
   }
@@ -133,6 +89,7 @@ class TotalsTable extends Component {
 }
 
 function getPivotTableRows(yearData, stateYear) {
+  if (!yearData) { return <tbody /> ;}
   var rows = [["Активный доход", "", "", "", "", "", "", "", "", "", "", "", ""],
               ["Рента", "", "", "", "", "", "", "", "", "", "", "", ""],
               ["Пассивный доход (общий), в т.ч.", "", "", "", "", "", "", "", "", "", "", "", ""],
@@ -144,7 +101,6 @@ function getPivotTableRows(yearData, stateYear) {
               ["Стоимость чистых активов", "", "", "", "", "", "", "", "", "", "", "", ""]];
 
   yearData.forEach(function(item) {
-    console.log('Iterating... ' + typeof item.date.year + ' vs. ' + typeof stateYear);
     if (item.date.year === stateYear) {
       rows[0][item.date.month] = item.activeIncome;
       rows[1][item.date.month] = item.rentIncome;
@@ -168,6 +124,30 @@ function getPivotTableRows(yearData, stateYear) {
     return <tr key={"row" + index.toString()}>{ item }</tr>
   })
   return <tbody>{result}</tbody>;
+}
+
+function getTotalsByMonth(year, cb) {
+  return fetch('totalsByMonth?data.year=' + year, {
+    accept: 'application/json'
+  }).then(checkStatus)
+    .then(parseJSON)
+    .then(cb);
+}
+
+function checkStatus(response) {
+  if(response.status >= 200 && response.status < 300) {
+    return response;
+  } else {
+    const error = new Error('HTTP Error ${response.statusText');
+    error.status = response.statusText;
+    error.response = response;
+    console.log(error); //eslint-disable-line no-console
+    throw error;
+  }
+}
+
+function parseJSON(response) {
+  return response.json();
 }
 
 export default App;
