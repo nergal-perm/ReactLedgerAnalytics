@@ -11,18 +11,28 @@ class App extends Component {
 class PivotTableByYear extends Component {
   constructor(props) {
     super(props);
+    this.handleUserInput = this.handleUserInput.bind(this);
     this.state = {
       year: 2016
     };
-    this.handleUserInput = this.handleUserInput.bind(this);
+  }
+
+  componentDidMount() {
+    getTotalsByYear(this.state.year, (yearData) => {
+      console.log("Component did mount with " + yearData);
+      this.setState ({
+        year: this.state.year,
+        totalsByYear: yearData[0]
+      });      
+    });        
   }
 
   handleUserInput(event) {
     var stateYear = parseInt(event.target.value, 10);
-    getTotalsByMonth(stateYear, (yearData) => {
+    getTotalsByYear(stateYear, (yearData) => {
       this.setState({
         year:stateYear,
-        totalsByMonth: yearData
+        totalsByYear: yearData[0]
       });      
     });
   }
@@ -31,7 +41,7 @@ class PivotTableByYear extends Component {
     return (
       <div>
         <YearFilter stateYear={this.state.year} onUserInput={this.handleUserInput}/>
-        <TotalsTable yearData={this.state.totalsByMonth} stateYear={this.state.year}/>
+        <TotalsTable yearData={this.state.totalsByYear} stateYear={this.state.year}/>
       </div>
     );
   }
@@ -82,52 +92,40 @@ class TotalsTable extends Component {
             <th>Декабрь</th>
           </tr>
         </thead>
-        {getPivotTableRows(this.props.yearData, this.props.stateYear)}
+        {getPivotTableRows(this.props.yearData)}
       </table>
     );
   }
 }
 
-function getPivotTableRows(yearData, stateYear) {
-  if (!yearData) { return <tbody /> ;}
-  var rows = [["Активный доход", "", "", "", "", "", "", "", "", "", "", "", ""],
-              ["Рента", "", "", "", "", "", "", "", "", "", "", "", ""],
-              ["Пассивный доход (общий), в т.ч.", "", "", "", "", "", "", "", "", "", "", "", ""],
-              ["Реализованный доход", "", "", "", "", "", "", "", "", "", "", "", ""],
-              ["Ленкин доход", "", "", "", "", "", "", "", "", "", "", "", ""],
-              ["Расходы семьи", "", "", "", "", "", "", "", "", "", "", "", ""],
-              ["Инвестиции", "", "", "", "", "", "", "", "", "", "", "", ""],
-              ["Стоимость портфеля", "", "", "", "", "", "", "", "", "", "", "", ""],
-              ["Стоимость чистых активов", "", "", "", "", "", "", "", "", "", "", "", ""]];
-
-  yearData.forEach(function(item) {
-    if (item.date.year === stateYear) {
-      rows[0][item.date.month] = item.activeIncome;
-      rows[1][item.date.month] = item.rentIncome;
-      rows[2][item.date.month] = item.passiveIncomeTotal;
-      rows[3][item.date.month] = item.passiveIncomeFixed;
-      rows[4][item.date.month] = item.spouseIncome;
-      rows[5][item.date.month] = item.expenses;
-      rows[6][item.date.month] = item.investments;
-      rows[7][item.date.month] = item.marketValue;
-      rows[8][item.date.month] = item.netWorth;
-    };
-  });
-
-  var rowItems = rows.map(function(item) {
-    var row = item.map(function (rowItem, index) {
-      return <td key={"column" + index.toString()}>{ rowItem }</td>;
+class DataRow extends Component {
+  render() {
+    var tds = this.props.innerData.map((item, index) => {
+      return <td key={"col" + index}>{item}</td>;
     });
-    return row;
-  });
-  var result = rowItems.map(function(item, index) {
-    return <tr key={"row" + index.toString()}>{ item }</tr>
-  })
-  return <tbody>{result}</tbody>;
+
+    return <tr>{tds}</tr>
+  }
 }
 
-function getTotalsByMonth(year, cb) {
-  return fetch('totalsByMonth?data.year=' + year, {
+function getPivotTableRows(yearData) {
+  if (!yearData) { return <tbody /> ;}
+  console.log(yearData);
+  return (<tbody>
+      <DataRow innerData={yearData.activeIncome} />
+      <DataRow innerData={yearData.rentIncome} />
+      <DataRow innerData={yearData.passiveIncomeTotal} />
+      <DataRow innerData={yearData.passiveIncomeFixed} />
+      <DataRow innerData={yearData.spouseIncome} />
+      <DataRow innerData={yearData.expenses} />
+      <DataRow innerData={yearData.investments} />
+      <DataRow innerData={yearData.marketValue} />
+      <DataRow innerData={yearData.netWorth} />
+    </tbody>);
+}
+
+function getTotalsByYear(year, cb) {
+  return fetch('totalsByYear?year=' + year, {
     accept: 'application/json'
   }).then(checkStatus)
     .then(parseJSON)
