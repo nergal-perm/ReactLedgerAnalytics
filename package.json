@@ -8,7 +8,7 @@
     "start-work": "cross-env NODE_ENV=work npm start",
     "start-home": "cross-env NODE_ENV=home npm start",
     "start-work-mock": "cross-env NODE_ENV=work npm run start-mock",
-    "start-home-mock": "cross-env NODE_ENV=home npm run start-mock",    
+    "start-home-mock": "cross-env NODE_ENV=home npm run start-mock",
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "start-mock": "concurrently \"json-server --watch .\\server\\mock-data.json --port 3001\" \"npm run client\"",
     "server": "nodemon server\\app.js",

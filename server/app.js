@@ -1,5 +1,5 @@
 const express = require('express');
-const config =  require('config');
+const reports = require('./controllers/reports');
 
 const app = express();
 
@@ -12,9 +12,18 @@ if (process.env.NODE_ENV === 'production') {
 
 app.get('/api/welcome', (req, res) => {
     res.json([{
-    	envVariable: process.env.NODE_ENV,
-    	path: config.get('localFilePath')
+    	envVariable: process.env.NODE_ENV
     }]);
+});
+
+app.get('/api/yearoverview/:year', (req, res) => {
+	reports.getYearOverview(req.params.year, (err, yearReport) => {
+		if (err) {
+			sendJsonResponse(res, 500, {message: err.message});
+		} else {
+			sendJsonResponse(res, 200, yearReport);
+		}
+	});
 });
 
 app.listen(app.get('port'), () => {
