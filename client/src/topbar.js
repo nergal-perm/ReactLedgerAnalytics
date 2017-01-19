@@ -18,6 +18,7 @@ class TopBar extends Component {
 					<div className="navbar-collapse collapse" id="navbar">
 						<ul className="nav navbar-nav navbar-right">
 							<li><Link to='/yearTotals'>Итоги года</Link></li>
+							<li><Link to='/monthlyDashboard'>Итоги месяца</Link></li>
 						</ul>
 					</div>
 				</div>
