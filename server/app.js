@@ -1,36 +1,15 @@
 const express = require('express');
-const reports = require('./controllers/reports');
+const bodyParser = require('body-parser');
 
-const app = express();
+const testRoutes = require('./routes/test');
 
-app.set('port', (process.env.PORT || 3001));
+let port = process.env.PORT || 3001;
+let app = express();
 
-// Express only serves static assets in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static('../client/build'));
-}
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());
 
-app.get('/api/welcome', (req, res) => {
-    res.json([{
-    	envVariable: process.env.NODE_ENV
-    }]);
-});
+app.use('/api/test', testRoutes);
 
-app.get('/api/yearoverview/:year', (req, res) => {
-	reports.getYearOverview(req.params.year, (err, yearReport) => {
-		if (err) {
-			sendJsonResponse(res, 500, {message: err.message});
-		} else {
-			sendJsonResponse(res, 200, yearReport);
-		}
-	});
-});
-
-app.listen(app.get('port'), () => {
-  console.log(`Find the server at: http://localhost:${app.get('port')}/`); // eslint-disable-line no-console
-});
-
-function sendJsonResponse(res, status, content) {
-	res.status(status);
-	res.json(content);
-}
+app.listen(port);
+console.log('Magic happens on port ' + port);
