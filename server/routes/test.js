@@ -4,16 +4,27 @@ const async = require('async');
 
 const router = express.Router();
 
+// Middleware for routers
+/*
+1. Нужно определить корректные аргументы дат для подстановки в запросы к ledger на основании параметра http-запроса
+1. Может быть, вообще придется написать какой-то обобщенный конструктор запросов к ledger?
+1. Возможно, по крайней мере, на первое время, нужно залогировать получившиеся запросы к ledger в консоль
+1. Нужно получить данные от ledger и перенаправить их в парсеры, которые обработают их на основании rest-точки (типа пользовательского запроса)
+
+ */
+
+
 router.get('/', function(req, res) {
     const argsFixedPart = ['-f', 'ledger.ledger'];
     let periodStr = 'jun';
     let args = {
-        activeIncome: [ 'register', '-j', '-M' , '\"^Доходы:Актив\"', '-X', 'руб', '--invert', '--period', periodStr ],
-        spouseIncome: [ 'register', '-j', '-M' , '\"^Доходы:Ленкин\"', '-X', 'руб', '--invert', '--period', periodStr ],
-        expenses: [ 'register', '-j', '-M' , '\"^Расходы\"', '-X', 'руб', '--invert', '--period', periodStr ],
-        assetsTransactions: [ 'register', '-M', '\"Инвестиции\"', '-B', '-X', 'руб', '--period', periodStr],
-        // ledger -f ledger.ledger balance "Инвестиции" -e "2016/12/31" -V --price-db prices.db
-        portfolio: [ 'balance', '\"Инвестиции\"', '-e', '\"2017\/06\/30\"', '-V', '--price-db', 'prices.db' ]
+        activeIncome: [ 'register', '-J', '-M' , '\"^Доходы:Актив\"', '-X', 'руб', '--invert', '--period', periodStr ],
+        passiveIncome: ['register', '-J', '-M', '\"^Доходы:Пассив\" and not \"Рента\"', '-X', 'руб', '--invert', '--period', periodStr],
+        spouseIncome: [ 'register', '-J', '-M' , '\"^Доходы:Ленкин\"', '-X', 'руб', '--invert', '--period', periodStr ],
+        expenses: [ 'register', '-J', '-M' , '\"^Расходы\"', '-X', 'руб', '--period', periodStr ],
+        assetsTransactions: [ 'register', '-J', '-M', '\"Инвестиции\"', '-B', '-X', 'руб', '--period', periodStr],
+        portfolio: [ 'balance', '\"Инвестиции\"', '-J', '-V', '--price-db', 'prices.db', '-e', '2017-06-30' ],
+        netWorth: [ 'balance', '\"^Накопления\"', 'or', '\"^Активы\"', 'or', '\"Инвестиции\"', '-V', '--price-db', 'prices.db', '-e', '2017-06-30', '-X', 'руб', '-J' ]
     };
     let opts = { cwd: 'C:\\Tools\\ledger\\data'};
 
@@ -25,12 +36,11 @@ router.get('/', function(req, res) {
         console.log(args);
         let result = crossSpawn.spawn('C:\\Tools\\ledger\\ledger.exe', argsFixedPart.concat(args), opts);
         let output = '';
-        let errorMessage = '';
         result.stdout.on('data', function(chunk) {
             output += chunk;
         });
         result.stdout.on('close', function() {
-            finalResult[key] = output;
+            finalResult[key] = output.split('\n');
             callback();
         });
     }
