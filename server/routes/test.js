@@ -61,9 +61,20 @@ router.get('/', function(req, res) {
             output += chunk;
         });
         result.stdout.on('close', function() {
-            finalResult[key] = output.split('\n');
+            finalResult[key] = getValueFrom(output.split('\n'));
             callback();
         });
+    }
+
+    function getValueFrom(incomingArray) {
+        if (Array.isArray(incomingArray) && incomingArray.length >= 2) {
+            let foundValues = incomingArray[incomingArray.length - 2].match(/[+-]?([0-9]*[.])?[0-9]+$/g);
+            if (foundValues.length > 0) {
+                return Number.parseFloat(foundValues[foundValues.length-1]);
+            }
+        } else {
+            return 0;
+        }
     }
 
     function finishProcessing(err) {
