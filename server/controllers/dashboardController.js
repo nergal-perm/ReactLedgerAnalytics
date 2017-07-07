@@ -1,5 +1,6 @@
 const conf = require('nconf');
 const Vector = require('../utils/Vector');
+const Format = require('../utils/Formatter');
 
 conf.argv()
     .env()
@@ -40,14 +41,37 @@ function getMonthData() {
     const portfolio = new Vector(history.portfolio.slice(-24));
 
 
-    return [
-        {paramName: 'Активный доход за месяц', firstValue: activeIncome.firstItem(), sparkData: activeIncome.items, valueThisMonth: activeIncome.lastItem()},
-        {paramName: 'Расходы за месяц', firstValue: expenses.firstItem(), sparkData: expenses.items, valueThisMonth:expenses.lastItem()},
-        {paramName: 'Активный доход минус расходы', firstValue: monthlyProfit.firstItem(), sparkData: monthlyProfit.items, valueThisMonth: monthlyProfit.lastItem()},
-        {paramName: 'Пассивный доход', firstValue: passiveIncome.firstItem(), sparkData: passiveIncome.items, valueThisMonth: passiveIncome.lastItem()},
-        {paramName: 'Портфель', firstValue: portfolio.firstItem(), sparkData: portfolio.items, valueThisMonth: portfolio.lastItem()},
-        {paramName: 'Чистые активы', firstValue: netWorth.firstItem(), sparkData: netWorth.items, valueThisMonth: netWorth.lastItem()},
-    ];
+    return [{
+        paramName: 'Активный доход за месяц',
+        firstValue: Format.asThousands(activeIncome.firstItem()),
+        sparkData: activeIncome.items,
+        valueThisMonth: Format.asThousands(activeIncome.lastItem())
+    }, {
+        paramName: 'Расходы за месяц',
+        firstValue: Format.asThousands(expenses.firstItem()),
+        sparkData: expenses.items,
+        valueThisMonth: Format.asThousands(expenses.lastItem())
+    }, {
+        paramName: 'Активный доход минус расходы',
+        firstValue: Format.asThousands(monthlyProfit.firstItem()),
+        sparkData: monthlyProfit.items,
+        valueThisMonth: Format.asThousands(monthlyProfit.lastItem())
+    }, {
+        paramName: 'Пассивный доход',
+        firstValue: Format.asThousands(passiveIncome.firstItem()),
+        sparkData: passiveIncome.items,
+        valueThisMonth: Format.asThousands(passiveIncome.lastItem())
+    }, {
+        paramName: 'Портфель',
+        firstValue: Format.asThousands(portfolio.firstItem()),
+        sparkData: portfolio.items,
+        valueThisMonth: Format.asThousands(portfolio.lastItem())
+    }, {
+        paramName: 'Чистые активы',
+        firstValue: Format.asThousands(netWorth.firstItem()),
+        sparkData: netWorth.items,
+        valueThisMonth: Format.asThousands(netWorth.lastItem())
+    }];
 }
 
 function getAverageData() {
@@ -55,13 +79,32 @@ function getAverageData() {
     const monthlyProfit = new Vector(new Vector(history.monthlyProfit).simpleSMA(12).slice(-24));
     const passiveIncomeRate = averagePassiveIncome.divideByVector(portfolioAverage).multiplyByNumber(24);
 
-    return [
-        {paramName: 'Средний активный доход', firstValue: activeIncome.firstItem(), sparkData: activeIncome.items, valueThisMonth: activeIncome.lastItem()},
-        {paramName: 'Средняя величина расходов', firstValue: averageExpenses.firstItem(), sparkData: averageExpenses.items, valueThisMonth:averageExpenses.lastItem()},
-        {paramName: 'Средний доход - средний расход', firstValue: monthlyProfit.firstItem(), sparkData: monthlyProfit.items, valueThisMonth: monthlyProfit.lastItem()},
-        {paramName: 'Средний пассивный доход', firstValue: averagePassiveIncome.firstItem(), sparkData: averagePassiveIncome.items, valueThisMonth: averagePassiveIncome.lastItem()},
-        {paramName: 'Средняя доходность', firstValue: passiveIncomeRate.firstItem(), sparkData: passiveIncomeRate.items, valueThisMonth: passiveIncomeRate.lastItem()}
-    ]
+    return [{
+        paramName: 'Средний активный доход',
+        firstValue: Format.asThousands(activeIncome.firstItem()),
+        sparkData: activeIncome.items,
+        valueThisMonth: Format.asThousands(activeIncome.lastItem())
+    }, {
+        paramName: 'Средняя величина расходов',
+        firstValue: Format.asThousands(averageExpenses.firstItem()),
+        sparkData: averageExpenses.items,
+        valueThisMonth: Format.asThousands(averageExpenses.lastItem())
+    }, {
+        paramName: 'Средний доход - средний расход',
+        firstValue: Format.asThousands(monthlyProfit.firstItem()),
+        sparkData: monthlyProfit.items,
+        valueThisMonth: Format.asThousands(monthlyProfit.lastItem())
+    }, {
+        paramName: 'Средний пассивный доход',
+        firstValue: Format.asThousands(averagePassiveIncome.firstItem()),
+        sparkData: averagePassiveIncome.items,
+        valueThisMonth: Format.asThousands(averagePassiveIncome.lastItem())
+    }, {
+        paramName: 'Средняя доходность',
+        firstValue: Format.asPercent(passiveIncomeRate.firstItem(),2),
+        sparkData: passiveIncomeRate.items,
+        valueThisMonth: Format.asPercent(passiveIncomeRate.lastItem(),2)
+    }];
 }
 
 function getRatioData() {
@@ -73,11 +116,22 @@ function getRatioData() {
     const safetyMarginRatio = netWorth.divideByVector(averageExpenses);
     const independenceRatio = averagePassiveIncome.divideByVector(averageExpenses);
 
-    return [
-        {paramName: 'Индекс богатства', firstValue: wealthRatio.firstItem(), sparkData: wealthRatio.items, valueThisMonth: wealthRatio.lastItem()},
-        {paramName: 'Запас прочности', firstValue: safetyMarginRatio.firstItem(), sparkData: safetyMarginRatio.items, valueThisMonth: safetyMarginRatio.lastItem()},
-        {paramName: 'Независимость', firstValue: independenceRatio.firstItem(), sparkData: independenceRatio.items, valueThisMonth: independenceRatio.lastItem()}
-    ]
+    return [{
+        paramName: 'Индекс богатства',
+        firstValue: Format.asPercent(wealthRatio.firstItem()),
+        sparkData: wealthRatio.items,
+        valueThisMonth: Format.asPercent(wealthRatio.lastItem())
+    }, {
+        paramName: 'Запас прочности',
+        firstValue: Format.asUnits(safetyMarginRatio.firstItem(), 2, 'мес.'),
+        sparkData: safetyMarginRatio.items,
+        valueThisMonth: Format.asUnits(safetyMarginRatio.lastItem(), 2, 'мес.')
+    }, {
+        paramName: 'Независимость',
+        firstValue: Format.asPercent(independenceRatio.firstItem()),
+        sparkData: independenceRatio.items,
+        valueThisMonth: Format.asPercent(independenceRatio.lastItem())
+    }];
 }
 
 module.exports = {
