@@ -8,7 +8,7 @@
         Fancy.MODULESDIR = './node_modules/fancygrid/modules/';
     </script>
     <script src="http://code.highcharts.com/highcharts.js"></script>
-    <script src="./public/jquery.sparkline.js"></script>
+    <script src="./public/jquery.sparkline.min.js"></script>
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
@@ -24,25 +24,27 @@
                         url: "http://127.0.0.1:3001/api/test/dashboardData"
                     }
                 },
-                height: 400,
+                height: 350,
                 width: 600,
                 title: 'Месячные показатели',
                 columns: [{
                     index: 'paramName',
-                    type: 'string',
-                    flex: 3
+                    type: 'string'
                 },{
                     index: 'firstValue',
-                    type: 'number',
-                    flex: 1
+                    type: 'number'
                 },{
                     index: 'sparkData',
                     title: '',
-                    type: 'sparklinebar'
+                    type: 'sparklinebar',
+                    sparkConfig: {
+                        barWidth: 3,
+                        barSpacing: 1
+                    },
+                    width: 100
                 },{
                     index: 'valueThisMonth',
-                    type: 'number',
-                    flex: 1
+                    type: 'number'
                 }]
             });
         });
