@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <link href="./node_modules/fancygrid/client/fancy.min.css" rel="stylesheet">
+    <script src="./node_modules/fancygrid/client/fancy.full.min.js"></script>
+    <script>
+        Fancy.MODULESDIR = './node_modules/fancygrid/modules/';
+    </script>
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="./public/jquery.sparkline.js"></script>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div id="monthlyValues"></div>
+
+    <script>
+        $(function(){
+            $('#monthlyValues').FancyGrid({
+                data: {
+                    proxy: {
+                        type: 'rest',
+                        url: "http://127.0.0.1:3001/api/test/dashboardData"
+                    }
+                },
+                height: 400,
+                width: 600,
+                title: 'Месячные показатели',
+                columns: [{
+                    index: 'paramName',
+                    type: 'string',
+                    flex: 3
+                },{
+                    index: 'firstValue',
+                    type: 'number',
+                    flex: 1
+                },{
+                    index: 'sparkData',
+                    title: '',
+                    type: 'sparklinebar'
+                },{
+                    index: 'valueThisMonth',
+                    type: 'number',
+                    flex: 1
+                }]
+            });
+        });
+    </script>
+</body>
+</html>

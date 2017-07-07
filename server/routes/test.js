@@ -1,9 +1,11 @@
 const express = require('express');
 const crossSpawn = require('cross-spawn');
 const async = require('async');
-let conf = require('nconf');
 
 const router = express.Router();
+
+const dc = require('../controllers/dashboardController');
+
 
 // Middleware for routers
 /*
@@ -14,23 +16,10 @@ const router = express.Router();
 
  */
 
-conf.argv()
-    .env()
-    .file({ file: 'server/finance.json', search: true });
-
-
-router.get('/oldData', function(req, res) {
-    var result = {
-        periods: conf.get('periods').length,
-        activeIncome: conf.get('activeIncome'),
-        activeIncomeMA: conf.get('activeIncome').simpleSMA(12),
-        investmentsBuys: conf.get('investmentBuys').length,
-        investmentsSells: conf.get('investmentBuys').length,
-        portfolio: conf.get('portfolio').length,
-        netWorth: conf.get('netWorth').length
-    };
+router.get('/dashboardData', function(req, res) {
     res.json({
-        ma: conf.get('activeIncome').simpleSMA(12)
+        data: dc.getDashboardData(),
+        success: true
     });
 });
 
@@ -90,20 +79,5 @@ router.get('/', function(req, res) {
     }
 
 });
-
-// Moving average calculation
-// taken from https://rosettacode.org/wiki/Averages/Simple_moving_average#JavaScript
-// subtly changed to reflect my algorithm
-Array.prototype.simpleSMA=function(N) {
-    return this.map(function(el,index, _arr) {
-        return _arr.filter(function(x2,i2) {
-            return i2 <= index && i2 > index - N;
-        })
-        .reduce(function(current, last){
-            return (current + last);
-        })/Math.min(index+1, N);
-    });
-};
-
 
 module.exports = router;
