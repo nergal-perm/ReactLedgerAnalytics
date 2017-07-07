@@ -14,39 +14,60 @@
 </head>
 <body>
     <div id="monthlyValues"></div>
+    <div id="averageValues"></div>
+    <div id="ratioValues"></div>
 
     <script>
-        $(function(){
-            $('#monthlyValues').FancyGrid({
-                data: {
-                    proxy: {
-                        type: 'rest',
-                        url: "http://127.0.0.1:3001/api/test/dashboardData"
-                    }
-                },
-                height: 350,
-                width: 600,
-                title: 'Месячные показатели',
-                columns: [{
+        function Options() {
+                this.height = 350;
+                this.width = 600;
+                this.columns = [{
                     index: 'paramName',
                     type: 'string'
-                },{
+                }, {
                     index: 'firstValue',
                     type: 'number'
-                },{
+                }, {
                     index: 'sparkData',
                     title: '',
-                    type: 'sparklinebar',
-                    sparkConfig: {
-                        barWidth: 3,
-                        barSpacing: 1
-                    },
+                    type: 'sparklineline',
                     width: 100
-                },{
+                }, {
                     index: 'valueThisMonth',
                     type: 'number'
-                }]
-            });
+                }];
+        }
+
+        $(function(){
+            var monthlyOptions = new Options;
+            monthlyOptions.data = {
+                proxy: {
+                    type: 'rest',
+                    url: "http://127.0.0.1:3001/api/test/dashboardDataMonth"
+                }
+            };
+            monthlyOptions.title = 'Месячные показатели';
+            $('#monthlyValues').FancyGrid(monthlyOptions);
+
+            var averageOptions = new Options;
+            averageOptions.data = {
+                proxy: {
+                    type: 'rest',
+                    url: "http://127.0.0.1:3001/api/test/dashboardDataAverage"
+                }
+            };
+            averageOptions.title = 'Средние показатели';
+            $('#averageValues').FancyGrid(averageOptions);
+
+            var ratioOptions = new Options;
+            ratioOptions.data = {
+                proxy: {
+                    type: 'rest',
+                    url: "http://127.0.0.1:3001/api/test/dashboardDataRatios"
+                }
+            };
+            ratioOptions.title = 'Контрольные коэффициенты';
+            $('#ratioValues').FancyGrid(ratioOptions);
         });
     </script>
 </body>

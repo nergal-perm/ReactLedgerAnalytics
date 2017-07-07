@@ -8,7 +8,7 @@ Vector.prototype.add = function(other) {
     }
     let result = [];
     for(let i = 0; i < this.items.length; i++) {
-        result.push( this.items[i] + other.items[i])
+        result.push( this.items[i] + other.items[i]);
     }
 
     return new Vector(result);
@@ -20,11 +20,30 @@ Vector.prototype.subtract = function(other) {
     }
     let result = [];
     for(let i = 0; i < this.items.length; i++) {
-        result.push( this.items[i] - other.items[i])
+        result.push( this.items[i] - other.items[i]);
     }
 
     return new Vector(result);
 };
+
+Vector.prototype.multiplyByNumber = function(num) {
+    let result =[];
+
+    for(let i = 0; i < this.items.length; i++) {
+        result.push( this.items[i] * num);
+    }
+
+    return new Vector(result);
+};
+
+Vector.prototype.divideByVector = function(other) {
+    let result = [];
+    for(let i = 0; i < this.items.length; i++) {
+        result.push( this.items[i] / other.items[i]);
+    }
+
+    return new Vector(result);
+}
 
 // Moving average calculation
 // taken from https://rosettacode.org/wiki/Averages/Simple_moving_average#JavaScript

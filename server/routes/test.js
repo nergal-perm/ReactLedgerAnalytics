@@ -16,11 +16,25 @@ const dc = require('../controllers/dashboardController');
 
  */
 
-router.get('/dashboardData', function(req, res) {
+router.get('/dashboardDataMonth', function(req, res) {
     res.json({
-        data: dc.getDashboardData(),
+        data: dc.getMonthData(),
         success: true
     });
+});
+
+router.get('/dashboardDataAverage', function(req, res) {
+    res.json({
+        data: dc.getAverageData(),
+        success: true
+    });
+});
+
+router.get('/dashboardDataRatios', function(req, res) {
+    res.json({
+        data: dc.getRatioData(),
+        success: true
+    })
 });
 
 
