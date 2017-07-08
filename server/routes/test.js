@@ -37,32 +37,56 @@ router.get('/dashboardDataRatios', function(req, res) {
     })
 });
 
+let output = '';
+
+router.get('/linux', function(req, res) {
+    const LINUX_PATHS = {
+        cwd: '/home/eugene/Dropbox/Finance',
+        executable: '/usr/bin/ledger'
+    };
+    const opts = { cwd: LINUX_PATHS.cwd};
+
+    let result = crossSpawn.spawn(LINUX_PATHS.executable, null, opts);
+    output = '';
+    result.stdout.on('data', addChunk);
+    result.stdout.on('close', function() {
+        res.json({message: output.split('\n')});
+    });
+});
+
 
 router.get('/', function(req, res) {
-    const argsFixedPart = ['-f', 'ledger.ledger'];
+    const WINDOWS_PATHS = {
+        cwd: 'C:\\Tools\\ledger\\data',
+        executable: 'C:\\Tools\\ledger\\ledger.exe'
+    };
+    const LINUX_PATHS = {
+        cwd: '/home/eugene/Dropbox/Finance',
+        executable: '/usr/bin/ledger'
+    };
+    
+    const argsFixedPart = ['-f', 'ledger.txt'];
     let periodStr = 'jun';
+    let periodDate = '2017-06-30';
     let args = {
         activeIncome: [ 'register', '-J', '-M' , '\"^Доходы:Актив\"', '-X', 'руб', '--invert', '--period', periodStr ],
         passiveIncome: ['register', '-J', '-M', '\"^Доходы:Пассив\" and not \"Рента\"', '-X', 'руб', '--invert', '--period', periodStr],
         spouseIncome: [ 'register', '-J', '-M' , '\"^Доходы:Ленкин\"', '-X', 'руб', '--invert', '--period', periodStr ],
         expenses: [ 'register', '-J', '-M' , '\"^Расходы\"', '-X', 'руб', '--period', periodStr ],
         assetsTransactions: [ 'register', '-J', '-M', '\"Инвестиции\"', '-B', '-X', 'руб', '--period', periodStr],
-        portfolio: [ 'balance', '\"Инвестиции\"', '-J', '-V', '--price-db', 'prices.db', '-e', '2017-06-30' ],
+        portfolio: [ 'balance', '\"Инвестиции\"', '-J', '-V', '--price-db', 'prices.db', '-e', periodDate ],
         netWorth: [ 'balance', '\"^Накопления\"', 'or', '\"^Активы\"', 'or', '\"Инвестиции\"', '-V', '--price-db', 'prices.db', '-e', '2017-06-30', '-X', 'руб', '-J' ]
     };
-    let opts = { cwd: 'C:\\Tools\\ledger\\data'};
+    let opts = { cwd: LINUX_PATHS.cwd};
 
     let finalResult = {};
 
-    async.eachOf(args, handleLedgerResponse, finishProcessing);
+    async.eachOfSeries(args, handleLedgerResponse, finishProcessing);
 
     function handleLedgerResponse(args, key, callback) {
-        console.log(args);
-        let result = crossSpawn.spawn('C:\\Tools\\ledger\\ledger.exe', argsFixedPart.concat(args), opts);
-        let output = '';
-        result.stdout.on('data', function(chunk) {
-            output += chunk;
-        });
+        let result = crossSpawn.spawn(LINUX_PATHS.executable, argsFixedPart.concat(args), opts);
+        output = '';
+        result.stdout.on('data', addChunk);
         result.stdout.on('close', function() {
             finalResult[key] = getValueFrom(output.split('\n'));
             callback();
@@ -93,5 +117,10 @@ router.get('/', function(req, res) {
     }
 
 });
+
+function addChunk(chunk) {
+    output += chunk;
+}
+
 
 module.exports = router;
