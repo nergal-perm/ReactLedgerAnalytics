@@ -39,21 +39,20 @@ router.get('/dashboardDataRatios', function(req, res) {
 
 let output = '';
 
-router.get('/linux', function(req, res) {
-    const LINUX_PATHS = {
-        cwd: '/home/eugene/Dropbox/Finance',
-        executable: '/usr/bin/ledger'
-    };
-    const opts = { cwd: LINUX_PATHS.cwd};
-
-    let result = crossSpawn.spawn(LINUX_PATHS.executable, null, opts);
-    output = '';
-    result.stdout.on('data', addChunk);
-    result.stdout.on('close', function() {
-        res.json({message: output.split('\n')});
-    });
-});
-
+const months = {
+    jan: '-01-31',
+    feb: '-02-28',
+    mar: '-03-31',
+    apr: '-04-30',
+    may: '-05-31',
+    jun: '-06-30',
+    jul: '-07-31',
+    aug: '-08-31',
+    sep: '-09-30',
+    oct: '-10-31',
+    nov: '-11-30',
+    dec: '-12-31'
+}
 
 router.get('/', function(req, res) {
     const WINDOWS_PATHS = {
@@ -66,8 +65,9 @@ router.get('/', function(req, res) {
     };
     
     const argsFixedPart = ['-f', 'ledger.txt'];
-    let periodStr = 'jun';
-    let periodDate = '2017-06-30';
+    console.log(JSON.stringify(req.query));
+    let periodStr = req.query.month;
+    let periodDate = req.query.year + months[req.query.month];
     let args = {
         activeIncome: [ 'register', '-J', '-M' , '\"^Доходы:Актив\"', '-X', 'руб', '--invert', '--period', periodStr ],
         passiveIncome: ['register', '-J', '-M', '\"^Доходы:Пассив\" and not \"Рента\"', '-X', 'руб', '--invert', '--period', periodStr],
