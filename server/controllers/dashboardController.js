@@ -112,7 +112,7 @@ function getRatioData() {
     const cumulativeActiveIncome = new Vector(history.activeIncome.map(function(item) {
         return initialIncome += item;
     }));
-    const wealthRatio = new Vector(new Vector(history.netWorth).divideByVector(cumulativeActiveIncome).items.slice(-24));
+    const wealthRatio = new Vector(new Vector(history.portfolio).divideByVector(cumulativeActiveIncome).items.slice(-24));
     const safetyMarginRatio = netWorth.divideByVector(averageExpenses);
     const independenceRatio = averagePassiveIncome.divideByVector(averageExpenses);
 

@@ -40,18 +40,18 @@ router.get('/dashboardDataRatios', function(req, res) {
 let output = '';
 
 const months = {
-    jan: '-01-31',
-    feb: '-02-28',
-    mar: '-03-31',
-    apr: '-04-30',
-    may: '-05-31',
-    jun: '-06-30',
-    jul: '-07-31',
-    aug: '-08-31',
-    sep: '-09-30',
-    oct: '-10-31',
-    nov: '-11-30',
-    dec: '-12-31'
+    jan: { full: '-01-31', short: '-01'},
+    feb: { full: '-02-28', short: '-02'},
+    mar: { full: '-03-31', short: '-03'},
+    apr: { full: '-04-30', short: '-04'},
+    may: { full: '-05-31', short: '-05'},
+    jun: { full: '-06-30', short: '-06'},
+    jul: { full: '-07-31', short: '-07'},
+    aug: { full: '-08-31', short: '-08'},
+    sep: { full: '-09-30', short: '-09'},
+    oct: { full: '-10-31', short: '-10'},
+    nov: { full: '-11-30', short: '-11'},
+    dec: { full: '-12-31', short: '-12'}
 }
 
 router.get('/', function(req, res) {
@@ -66,8 +66,8 @@ router.get('/', function(req, res) {
     
     const argsFixedPart = ['-f', 'ledger.txt'];
     console.log(JSON.stringify(req.query));
-    let periodStr = req.query.month;
-    let periodDate = req.query.year + months[req.query.month];
+    let periodStr = req.query.year + months[req.query.month].short;
+    let periodDate = req.query.year + months[req.query.month].full;
     let args = {
         activeIncome: [ 'register', '-J', '-M' , '\"^Доходы:Актив\"', '-X', 'руб', '--invert', '--period', periodStr ],
         passiveIncome: ['register', '-J', '-M', '\"^Доходы:Пассив\" and not \"Рента\"', '-X', 'руб', '--invert', '--period', periodStr],
@@ -75,7 +75,7 @@ router.get('/', function(req, res) {
         expenses: [ 'register', '-J', '-M' , '\"^Расходы\"', '-X', 'руб', '--period', periodStr ],
         assetsTransactions: [ 'register', '-J', '-M', '\"Инвестиции\"', '-B', '-X', 'руб', '--period', periodStr],
         portfolio: [ 'balance', '\"Инвестиции\"', '-J', '-V', '--price-db', 'prices.db', '-e', periodDate ],
-        netWorth: [ 'balance', '\"^Накопления\"', 'or', '\"^Активы\"', 'or', '\"Инвестиции\"', '-V', '--price-db', 'prices.db', '-e', '2017-06-30', '-X', 'руб', '-J' ]
+        netWorth: [ 'balance', '\"^Накопления\"', 'or', '\"^Активы\"', 'or', '\"Инвестиции\"', '-V', '--price-db', 'prices.db', '-e', periodDate, '-X', 'руб', '-J' ]
     };
     let opts = { cwd: LINUX_PATHS.cwd};
 
@@ -109,6 +109,7 @@ router.get('/', function(req, res) {
         if(err) {
             res.json({message: 'Error'});
         } else {
+            finalResult.totalActiveIncome = finalResult.activeIncome + finalResult.spouseIncome;
             res.json({
                 message: 'Completed successfully, see console',
                 result: finalResult
