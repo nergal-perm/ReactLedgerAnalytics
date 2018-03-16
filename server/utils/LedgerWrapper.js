@@ -9,9 +9,8 @@ class LedgerWrapper {
    * @param {Object} options
    */
   constructor(options) {
-    if (options != null) {
-      this.parseOptions(options);
-    }
+    this.clearCurrentOptions();
+    this.parseOptions(options);
   }
 
   /**
@@ -19,6 +18,7 @@ class LedgerWrapper {
    * @param {Object} options
    */
   setOptions(options) {
+    this.clearCurrentOptions();
     this.parseOptions(options);
   }
 
@@ -33,11 +33,18 @@ class LedgerWrapper {
    * @return {Array} Command line arguments, properly escaped and quoted
    */
   get commandLine() {
-    const cliArguments = []
-      .concat(this.file != null ? this.file : [])
-      .concat(this.reportType != null ? this.reportType : [])
-      .concat(this.reportCurrency != null ? this.reportCurrency : []);
-    return cliArguments;
+    const args = this.commandLineArgs;
+    return []
+      .concat(args.file != null ? args.file : [])
+      .concat(args.reportType != null ? args.reportType : [])
+      .concat(args.reportCurrency != null ? args.reportCurrency : []);
+  }
+
+  /**
+   * Clears all the commandline options set for this instance
+   */
+  clearCurrentOptions() {
+    this.commandLineArgs = {};
   }
 
   /**
@@ -46,25 +53,52 @@ class LedgerWrapper {
    * @param {Object} options
    */
   parseOptions(options) {
-    if (options.file != null) {
-      this.file = ['-f', options.file];
-    } else {
-      this.valid = false;
+    const args = {};
+    if (this.validateOptions(options)) {
+      this.valid = true;
+      if (options.file != null) {
+        args.file = ['-f', options.file];
+      } else {
+        this.valid = false;
+      }
+      if (options.reportType != null &&
+          LedgerWrapper.validateReportType(options.reportType)) {
+        args.reportType = [options.reportType];
+      } else {
+        this.valid = false;
+      }
+      if (options.reportCurrency != null) {
+        args.reportCurrency = ['-X', options.reportCurrency];
+      }
     }
-    if (options.reportType != null &&
-        LedgerWrapper.validateReportType(options.reportType)) {
-      this.reportType = [options.reportType];
-    } else {
-      this.valid = false;
-    }
-    if (options.reportCurrency != null) {
-      this.reportCurrency = ['-X', options.reportCurrency];
+    this.commandLineArgs = args;
+  }
+
+  validateOptions(options) {
+    let errorMessage = '';
+    let isValid = true;
+    // because Object.keys(new Date()).length === 0;
+    // we have to do some additional check
+    // https://stackoverflow.com/a/32108184
+    if (!options ||
+      (Object.keys(options).length === 0 &&
+      options.constructor === Object)) {
+      errorMessage = 'Options object is null or empty';
+      isValid = false;
+    } else if (!options.file) {
+      isValid = false;
+      errorMessage = 'File name is not set';
+    } else if (!options.reportType) {
+      isValid = false;
+      errorMessage = 'Report type is not set';
+    } else if (!LedgerWrapper.validateReportType(options.reportType)) {
+      isValid = false;
+      errorMessage = 'Report type is not supported';
     }
 
-    // should be at the very end
-    if (this.valid !== false) {
-      this.valid = true;
-    }
+    this.errorMessage = errorMessage;
+    this.valid = isValid;
+    return isValid;
   }
 
   /**
