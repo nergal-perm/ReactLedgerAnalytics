@@ -8,10 +8,15 @@ const LedgerWrapper = require('../utils/LedgerWrapper');
 describe('LedgerWrapper general tests', function() {
     beforeEach(function() {
         this.ledger = new LedgerWrapper();
+        this.baseOptions = {
+            file: 'sampleFile.txt',
+            reportType: 'balance'
+        };
     });
 
     afterEach(function() {
         this.ledger = null;
+        this.baseOptions = null;
     });
 
     it('should be empty if options object is empty or invalid', function() {
@@ -20,11 +25,8 @@ describe('LedgerWrapper general tests', function() {
     });
 
     it('should overwrite options when setting new options object', function() {
-        this.ledger.setOptions({
-            file: 'testFile.txt',
-            reportType: 'balance'
-        });
-        expect(this.ledger.commandLine.join(' ')).to.equal('-f testFile.txt balance');
+        this.ledger.setOptions(this.baseOptions);
+        expect(this.ledger.commandLine.join(' ')).to.equal('-f sampleFile.txt balance');
 
         this.ledger.setOptions({});
         expect(this.ledger.commandLine.join(' ')).to.equal('');
@@ -73,20 +75,23 @@ describe('LedgerWrapper general tests', function() {
 describe('LedgerWrapper specific arguments', function() {
     beforeEach(function() {
         this.ledger = new LedgerWrapper();
+        this.baseOptions = {
+            file: 'sampleFile.txt',
+            reportType: 'balance'
+        };
     });
 
     afterEach(function() {
         this.ledger = null;
+        this.baseOptions = null;
     });
 
     it('should set up file argument or mark Wrapper as invalid', function() {
         const fileNames = ['ledger.txt', '/path/to/ledger.file', null];
         fileNames.forEach(fileName => {
             let expected = '-f ' + fileName;
-            this.ledger.setOptions({
-                file: fileName,
-                reportType: 'register'      // valid report type is not optional
-            });
+            this.baseOptions.file = fileName;
+            this.ledger.setOptions(this.baseOptions);
             if (fileName != null) {
                 expect(this.ledger.isValid).to.true;
                 expect(this.ledger.commandLine.join(' ').includes(expected)).to.true;
@@ -99,10 +104,8 @@ describe('LedgerWrapper specific arguments', function() {
     it('should set up report type of mark Wrapper as invalid', function() {
         const reportTypes = ['register', 'balance', null];
         reportTypes.forEach(reportType => {
-            this.ledger.setOptions({
-                reportType: reportType,
-                file: 'some_file'           // file name is not optional
-            });
+            this.baseOptions.reportType = reportType;
+            this.ledger.setOptions(this.baseOptions);
             if (reportType != null) {
                 expect(this.ledger.isValid).to.true;
                 expect(this.ledger.commandLine.includes(reportType)).to.true;
@@ -116,15 +119,44 @@ describe('LedgerWrapper specific arguments', function() {
         const currencies = [null, 'USD', 'руб'];
         currencies.forEach(currency => {
             let expected = '-X ' + (currency == null ? '' : currency);
-            this.ledger.setOptions({
-                file: 'sample.txt',
-                reportType: 'balance',
-                reportCurrency: currency
-            });
+            this.baseOptions.reportCurrency = currency;
+            this.ledger.setOptions(this.baseOptions);
             if (currency == null) {
                 expect(this.ledger.commandLine.join(' ').includes(expected.trim())).to.false;
             } else {
                 expect(this.ledger.commandLine.join(' ').includes(expected)).to.true;
+            }
+        });
+    });
+
+    it('should set up total-data option', function() {
+        const totalDataValues = [true, false];
+        totalDataValues.forEach(totalDataValue => {
+            this.baseOptions.totalData = totalDataValue;
+            this.ledger.setOptions(this.baseOptions);
+            expect(this.ledger.commandLine.join(' ').includes('-J')).to.equal(totalDataValue);
+        });
+    });
+
+    it('should set up periodical grouping', function() {
+        const periods = [null, 
+            {periodType: 'day', expected: '--daily'}, 
+            {periodType: 'week', expected: '--weekly'},
+            {periodType: 'month', expected: '--monthly'}, 
+            {periodType: 'quarter', expected: '--quarterly'},
+            {periodType: 'year', expected: '--yearly'}];
+        periods.forEach(period => {
+            if (period) {
+                this.baseOptions.groupPeriod = period.periodType;    
+            }
+            this.ledger.setOptions(this.baseOptions);
+            if (!period) {
+                const doNotExpect = ['-D', '--daily', '-W', '--weekly', 
+                    '-M', '--monthly', '-Q', '--quarterly', '-Y', '--yearly'];
+                expect(doNotExpect.some(v=> this.ledger.commandLine.indexOf(v) >= 0)).
+                    to.false;
+            } else {
+                expect(this.ledger.commandLine.includes(period.expected)).to.true;
             }
         });
     });

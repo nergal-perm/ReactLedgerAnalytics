@@ -37,7 +37,9 @@ class LedgerWrapper {
     return []
       .concat(args.file != null ? args.file : [])
       .concat(args.reportType != null ? args.reportType : [])
-      .concat(args.reportCurrency != null ? args.reportCurrency : []);
+      .concat(args.reportCurrency != null ? args.reportCurrency : [])
+      .concat(args.totalData != null ? args.totalData : [])
+      .concat(args.groupPeriod != null ? args.groupPeriod : []);
   }
 
   /**
@@ -56,6 +58,8 @@ class LedgerWrapper {
     const args = {};
     if (this.validateOptions(options)) {
       this.valid = true;
+
+      /* Required parameters */
       if (options.file != null) {
         args.file = ['-f', options.file];
       } else {
@@ -67,8 +71,20 @@ class LedgerWrapper {
       } else {
         this.valid = false;
       }
+
+      /* Optional parameters */
       if (options.reportCurrency != null) {
         args.reportCurrency = ['-X', options.reportCurrency];
+      }
+      if (options.totalData) {
+        args.totalData = ['-J'];
+      }
+      if (options.groupPeriod) {
+        if (options.groupPeriod === 'day') {
+          args.groupPeriod = '--daily';
+        } else {
+          args.groupPeriod = `--${options.groupPeriod}ly`;
+        }
       }
     }
     this.commandLineArgs = args;
