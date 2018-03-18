@@ -153,11 +153,41 @@ describe('LedgerWrapper specific arguments', function() {
             if (!period) {
                 const doNotExpect = ['-D', '--daily', '-W', '--weekly', 
                     '-M', '--monthly', '-Q', '--quarterly', '-Y', '--yearly'];
-                expect(doNotExpect.some(v=> this.ledger.commandLine.indexOf(v) >= 0)).
+                
+                // Nice way to check if one array contains another array's elements
+                // https://stackoverflow.com/a/25926600 (see comments)
+                expect(doNotExpect.some(v=> this.ledger.commandLine.includes(v))).
                     to.false;
             } else {
                 expect(this.ledger.commandLine.includes(period.expected)).to.true;
             }
         });
     });
+
+    it('should set up reverse date order', function() {
+        const invertValues = [true, false];
+        invertValues.forEach(invertValue => {
+            this.baseOptions.inverse = invertValue;
+            this.ledger.setOptions(this.baseOptions);
+            expect(this.ledger.commandLine.join(' ').includes('--invert')).to.equal(invertValue);
+        });        
+    });
+
+    it('should set up price type', function() {
+        const priceTypes = [null, {type: 'balance', expected: "-B"}, 
+            {type: 'market', expected: '-V'}, {type: 'volatile'}];
+        priceTypes.forEach(priceType => {
+            this.baseOptions.priceType = (priceType && priceType.type);
+            this.ledger.setOptions(this.baseOptions);
+            if(!priceType || priceType.type === 'volatile') {
+                const doNotExpect = ['-V', '-B'];
+                expect(doNotExpect.some(v => this.ledger.commandLine.includes(v))).
+                    to.false;
+            } else {
+                expect(this.ledger.commandLine.join(' ').includes(priceType.expected)).
+                    to.true;
+            }
+            
+        });
+    })
 });

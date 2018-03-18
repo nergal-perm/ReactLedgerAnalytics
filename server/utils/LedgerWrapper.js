@@ -39,7 +39,9 @@ class LedgerWrapper {
       .concat(args.reportType != null ? args.reportType : [])
       .concat(args.reportCurrency != null ? args.reportCurrency : [])
       .concat(args.totalData != null ? args.totalData : [])
-      .concat(args.groupPeriod != null ? args.groupPeriod : []);
+      .concat(args.groupPeriod != null ? args.groupPeriod : [])
+      .concat(args.inverse != null ? args.inverse : [])
+      .concat(args.priceType != null ? args.priceType : []);
   }
 
   /**
@@ -86,6 +88,17 @@ class LedgerWrapper {
           args.groupPeriod = `--${options.groupPeriod}ly`;
         }
       }
+      if (options.inverse) {
+        args.inverse = ['--invert'];
+      }
+      if (options.priceType && LedgerWrapper.validatePriceType(options.priceType)) {
+        if (options.priceType === 'balance') {
+          args.priceType = ['-B'];
+        }
+        if (options.priceType === 'market') {
+          args.priceType = ['-V'];
+        }
+      }
     }
     this.commandLineArgs = args;
   }
@@ -118,19 +131,21 @@ class LedgerWrapper {
   }
 
   /**
-   * @return {Array} Valid report types
-   */
-  static validReportTypes() {
-    return ['register', 'balance'];
-  }
-
-  /**
    * Checks if specified report type is supported by ledger-cli
    * @param {String} reportType
    * @return {Boolean} whether reportType is supported
    */
   static validateReportType(reportType) {
-    return LedgerWrapper.validReportTypes().includes(reportType);
+    return ['register', 'balance'].includes(reportType);
+  }
+
+  /**
+   * Checks if specified price type is supported by ledger-cli
+   * @param {String} priceType
+   * @return {Boolean} whether priceType is supported
+   */
+  static validatePriceType(priceType) {
+    return ['market', 'balance'].includes(priceType);
   }
 }
 
