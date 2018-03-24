@@ -6,58 +6,49 @@ const expect = chai.expect;
 const LedgerWrapper = require('../utils/LedgerWrapper');
 
 describe('LedgerWrapper general tests', function() {
-    beforeEach(function() {
-        this.ledger = new LedgerWrapper();
-        this.baseOptions = {
-            file: 'sampleFile.txt',
-            reportType: 'balance'
-        };
-    });
-
-    afterEach(function() {
-        this.ledger = null;
-        this.baseOptions = null;
-    });
 
     it('should be empty if options object is empty or invalid', function() {
+        this.ledger = new LedgerWrapper(null, null);
         expect(this.ledger.commandLine.join(' ')).to.equal('');
         expect(this.ledger.isValid).to.false;
     });
 
     it('should overwrite options when setting new options object', function() {
-        this.ledger.setOptions(this.baseOptions);
-        expect(this.ledger.commandLine.join(' ')).to.equal('-f sampleFile.txt balance');
-
-        this.ledger.setOptions({});
-        expect(this.ledger.commandLine.join(' ')).to.equal('');
+        // TODO: implement test
     });
     
     it('should make sure required options are set and valid', function() {
-        const options = [null, {}, { 
-            file: '',
-            reportType: 'balance',
-            msg: 'File name is not set'
-        }, {
-            reportType: 'balance',
-            msg: 'File name is not set'
-        }, {
-            file: 'sample.txt',
-            msg: 'Report type is not set'
-        }, {
-            file: 'sample.txt',
-            reportType: 'unsupportedReport',
-            msg: 'Report type is not supported'
-        }];
+        const ledgers = [
+            /* invalid objects */
+            { fileName: null, reportType: null, msg: 'File name is not set' },
+            { fileName: null, reportType: 'balance', msg: 'File name is not set' },
+            { fileName: 'sample.txt', reportType: null, msg: 'Report type is not set' },
+            { 
+                fileName: 'sample.txt', 
+                reportType: 'unsupportedReport', 
+                msg: 'Report type is not supported' 
+            },
+            /* valid objects */
+            { fileName: 'sample.txt', reportType: 'balance' },
+            { fileName: '/path/to/ledger.file', reportType: 'balance' },
+            { fileName: 'sample.txt', reportType: 'register' },
+            { fileName: '/path/to/ledger.file', reportType: 'register' },
+        ]
 
-        options.forEach(option => {
-            this.ledger.setOptions(option);
-            expect(this.ledger.isValid).to.false;
-            let msg = (!option || !option.msg) ? 'Options object is null or empty' : option.msg;
-            expect(this.ledger.errorMessage).to.equal(msg);
-            expect(this.ledger.commandLine.join(' ')).to.equal('');
+        ledgers.forEach(function(item) {
+            ledger = new LedgerWrapper(item.fileName, item.reportType);
+            if (item.msg) {
+                expect(ledger.isValid).to.false;
+                expect(ledger.errorMessage).to.equal(item.msg);
+                expect(ledger.commandLine.join(' ')).to.equal('');
+            } else {
+                expect(ledger.isValid).to.true;
+                expectedFileName = '-f ' + item.fileName;
+                expect(ledger.commandLine.join(' ').includes(expectedFileName)).to.true;
+                expect(ledger.commandLine.includes(item.reportType)).to.true;
+            }
         });
     });
-    
 
     it('should validate report types', function() {
         const validReportTypes = ['register', 'balance'];
@@ -74,45 +65,13 @@ describe('LedgerWrapper general tests', function() {
 
 describe('LedgerWrapper specific arguments', function() {
     beforeEach(function() {
-        this.ledger = new LedgerWrapper();
-        this.baseOptions = {
-            file: 'sampleFile.txt',
-            reportType: 'balance'
-        };
+        this.ledger = new LedgerWrapper('sampleFile.txt', 'balance');
+        this.baseOptions = {};
     });
 
     afterEach(function() {
         this.ledger = null;
         this.baseOptions = null;
-    });
-
-    it('should set up file argument or mark Wrapper as invalid', function() {
-        const fileNames = ['ledger.txt', '/path/to/ledger.file', null];
-        fileNames.forEach(fileName => {
-            let expected = '-f ' + fileName;
-            this.baseOptions.file = fileName;
-            this.ledger.setOptions(this.baseOptions);
-            if (fileName != null) {
-                expect(this.ledger.isValid).to.true;
-                expect(this.ledger.commandLine.join(' ').includes(expected)).to.true;
-            } else {
-                expect(this.ledger.isValid).to.false;
-            }
-        });
-    });
-
-    it('should set up report type of mark Wrapper as invalid', function() {
-        const reportTypes = ['register', 'balance', null];
-        reportTypes.forEach(reportType => {
-            this.baseOptions.reportType = reportType;
-            this.ledger.setOptions(this.baseOptions);
-            if (reportType != null) {
-                expect(this.ledger.isValid).to.true;
-                expect(this.ledger.commandLine.includes(reportType)).to.true;
-            } else {
-                expect(this.ledger.isValid).to.false;
-            }
-        });
     });
 
     it('should set up report currency', function() {
