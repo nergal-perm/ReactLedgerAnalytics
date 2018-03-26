@@ -9,7 +9,7 @@ describe('LedgerWrapper general tests', function() {
 
     it('should be empty if options object is empty or invalid', function() {
         this.ledger = new LedgerWrapper(null, null);
-        expect(this.ledger.commandLine.join(' ')).to.equal('');
+        expect(this.ledger.commandLine).to.equal('');
         expect(this.ledger.isValid).to.false;
     });
 
@@ -40,11 +40,11 @@ describe('LedgerWrapper general tests', function() {
             if (item.msg) {
                 expect(ledger.isValid).to.false;
                 expect(ledger.errorMessage).to.equal(item.msg);
-                expect(ledger.commandLine.join(' ')).to.equal('');
+                expect(ledger.commandLine).to.equal('');
             } else {
                 expect(ledger.isValid).to.true;
-                expectedFileName = '-f ' + item.fileName;
-                expect(ledger.commandLine.join(' ').includes(expectedFileName)).to.true;
+                expectedFileName = `-f ${item.fileName}`;
+                expect(ledger.commandLine.includes(expectedFileName)).to.true;
                 expect(ledger.commandLine.includes(item.reportType)).to.true;
             }
         });
@@ -81,10 +81,11 @@ describe('LedgerWrapper specific arguments', function() {
             this.baseOptions.reportCurrency = currency;
             this.ledger.setOptions(this.baseOptions);
             if (currency == null) {
-                expect(this.ledger.commandLine.join(' ').includes(expected.trim())).to.false;
+                expect(this.ledger.commandLine.includes(expected.trim())).to.false;
             } else {
-                expect(this.ledger.commandLine.join(' ').includes(expected)).to.true;
+                expect(this.ledger.commandLine.includes(expected)).to.true;
             }
+            expect(this.ledger.commandLine.includes('-f sampleFile.txt balance')).to.true;
         });
     });
 
@@ -93,7 +94,8 @@ describe('LedgerWrapper specific arguments', function() {
         totalDataValues.forEach(totalDataValue => {
             this.baseOptions.totalData = totalDataValue;
             this.ledger.setOptions(this.baseOptions);
-            expect(this.ledger.commandLine.join(' ').includes('-J')).to.equal(totalDataValue);
+            expect(this.ledger.commandLine.includes('-J')).to.equal(totalDataValue);
+            expect(this.ledger.commandLine.includes('-f sampleFile.txt balance')).to.true;
         });
     });
 
@@ -120,6 +122,7 @@ describe('LedgerWrapper specific arguments', function() {
             } else {
                 expect(this.ledger.commandLine.includes(period.expected)).to.true;
             }
+            expect(this.ledger.commandLine.includes('-f sampleFile.txt balance')).to.true;
         });
     });
 
@@ -128,7 +131,8 @@ describe('LedgerWrapper specific arguments', function() {
         invertValues.forEach(invertValue => {
             this.baseOptions.inverse = invertValue;
             this.ledger.setOptions(this.baseOptions);
-            expect(this.ledger.commandLine.join(' ').includes('--invert')).to.equal(invertValue);
+            expect(this.ledger.commandLine.includes('--invert')).to.equal(invertValue);
+            expect(this.ledger.commandLine.includes('-f sampleFile.txt balance')).to.true;
         });        
     });
 
@@ -143,10 +147,49 @@ describe('LedgerWrapper specific arguments', function() {
                 expect(doNotExpect.some(v => this.ledger.commandLine.includes(v))).
                     to.false;
             } else {
-                expect(this.ledger.commandLine.join(' ').includes(priceType.expected)).
+                expect(this.ledger.commandLine.includes(priceType.expected)).
                     to.true;
             }
-            
+            expect(this.ledger.commandLine.includes('-f sampleFile.txt balance')).to.true;
         });
-    })
+    });
+
+    it('should set up period as year-month pair', function() {
+        var balance = new LedgerWrapper('sampleFile.txt', 'balance');
+        var register = new LedgerWrapper('sampleFile.txt', 'register');
+        const periods = [
+            { 
+                ledger: balance,
+                date: { begin: null, end: new Date(2015, 0, 28) }, 
+                expected: '-e 2015-01-28'
+            }/*, {
+                ledger: register, 
+                date: { begin: new Date(2018,0,1), end: new Date(2018, 0, 28) }, 
+                expected: '-b 2018-01-01 -e 2018-01-28'
+            }, { date: new Date(2018, 8, 28), expected: '2018-09'},
+            { date: new Date(2018, 9, 28), expected: '2018-10'},
+            { date: new Date(2018, 10, 28), expected: '2018-11'},
+            { date: new Date(2018, 11, 28), expected: '2018-12'} */
+        ];
+        
+        periods.forEach(function(period) {
+            const ledger = period.ledger;
+            ledger.setOptions({ period: period.date });
+            expect(ledger.commandLine.includes('-f sampleFile.txt balance')).to.true;
+            expect(ledger.commandLine.includes(period.expected))
+                .to.true;
+        });
+    });
+
+    it('should set up period as begin / end dates', function() {
+        // TODO: implement test
+    });
+
+    it('should set up path to prices database', function() {
+        // TODO: implement test
+    });
+
+    it('should set up search pattern', function() {
+        // TODO: implement test
+    });    
 });

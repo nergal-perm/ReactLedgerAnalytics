@@ -5,16 +5,18 @@
  */
 class LedgerWrapper {
   /**
-   * Create a wrapper object, parsing options object
+   * Create a wrapper object, providing required parameters
    * @param {string} fileName
    * @param {string} reportType
    */
   constructor(fileName, reportType) {
     this.commandLineArgs = {};
     this.errorMessage = '';
+    this.commandLineArgs.file = '';
+    this.commandLineArgs.reportType = '';
     if (this.validateOptions({ fileName, reportType })) {
-      this.commandLineArgs.file = ['-f', fileName];
-      this.commandLineArgs.reportType = [reportType];
+      this.commandLineArgs.file = `-f ${fileName}`;
+      this.commandLineArgs.reportType = reportType;
     }
   }
 
@@ -39,21 +41,22 @@ class LedgerWrapper {
    */
   get commandLine() {
     const args = this.commandLineArgs;
-    return []
-      .concat(args.file != null ? args.file : [])
-      .concat(args.reportType != null ? args.reportType : [])
-      .concat(args.reportCurrency != null ? args.reportCurrency : [])
-      .concat(args.totalData != null ? args.totalData : [])
-      .concat(args.groupPeriod != null ? args.groupPeriod : [])
-      .concat(args.inverse != null ? args.inverse : [])
-      .concat(args.priceType != null ? args.priceType : []);
+    const s = `${args.file} ${args.reportType} ${args.reportCurrency} ${args.totalData}` +
+      ` ${args.groupPeriod} ${args.period} ${args.inverse} ${args.priceType}` +
+      ` ${args.period}`;
+    return s.replace(/\s\s*/g, ' ').replace(/\sundefined/g, '');
   }
 
   /**
    * Clears all the commandline options set for this instance
    */
   clearCurrentOptions() {
-    this.commandLineArgs = {};
+    const tempFile = this.commandLineArgs.file;
+    const tempReportType = this.commandLineArgs.reportType;
+    this.commandLineArgs = {
+      file: tempFile,
+      reportType: tempReportType,
+    };
   }
 
   /**
@@ -62,35 +65,43 @@ class LedgerWrapper {
    * @param {Object} options
    */
   parseOptions(options) {
-    const args = {};
+    const args = this.commandLineArgs;
     /* Optional parameters */
-    if (options.reportCurrency != null) {
-      args.reportCurrency = ['-X', options.reportCurrency];
+    args.reportCurrency = (typeof options.reportCurrency === 'string')
+      ? `-X ${options.reportCurrency}` : '';
+    args.totalData = (typeof options.totalData === 'boolean' && options.totalData)
+      ? '-J' : '';
+    if (typeof options.groupPeriod === 'string') {
+      args.groupPeriod = (options.groupPeriod === 'day')
+        ? '--daily' : `--${options.groupPeriod}ly`;
     }
-    if (options.totalData) {
-      args.totalData = ['-J'];
-    }
-    if (options.groupPeriod) {
-      if (options.groupPeriod === 'day') {
-        args.groupPeriod = '--daily';
-      } else {
-        args.groupPeriod = `--${options.groupPeriod}ly`;
+    args.inverse = (typeof options.inverse === 'boolean' && options.inverse)
+      ? '--invert' : '';
+    if (LedgerWrapper.validatePriceType(options.priceType)) {
+      switch (options.priceType) {
+        case 'balance':
+          args.priceType = '-B';
+          break;
+        case 'market':
+          args.priceType = '-V';
+          break;
+        default:
+          args.priceType = '';
       }
     }
-    if (options.inverse) {
-      args.inverse = ['--invert'];
-    }
-    if (options.priceType && LedgerWrapper.validatePriceType(options.priceType)) {
-      if (options.priceType === 'balance') {
-        args.priceType = ['-B'];
-      }
-      if (options.priceType === 'market') {
-        args.priceType = ['-V'];
-      }
-    }
+    args.period = (typeof options.period === 'object')
+      ? this.parsePeriodData(options.period) : '';
     this.commandLineArgs = args;
   }
 
+  /**
+   * Validates required option (file name and report type),
+   * sets the flag isValid, returns whether all the options are
+   * set and valid.
+   *
+   * @param {Object} options
+   * @returns {boolean} true when all the options set and valid
+   */
   validateOptions(options) {
     let errorMessage = '';
     let isValid = true;
@@ -118,10 +129,28 @@ class LedgerWrapper {
     return isValid;
   }
 
+  parsePeriodData(period) {
+    const { reportType } = this.commandLineArgs;
+    switch (reportType) {
+      case 'balance':
+        return '-e 2015-01-28';
+      default:
+        this.valid = false;
+        this.errorMessage = 'Period is not set';
+        return '';
+    }
+    /*
+    const year = period.getFullYear();
+    const month = (period.getMonth() < 9 ? '0' : '') +
+      (period.getMonth() + 1);
+    args.period = ['--period', `${year}-${month}`];
+    */
+  }
+
   /**
    * Checks if specified report type is supported by ledger-cli
    * @param {String} reportType
-   * @return {Boolean} whether reportType is supported
+   * @return {boolean} whether reportType is supported
    */
   static validateReportType(reportType) {
     return ['register', 'balance'].includes(reportType);
@@ -130,7 +159,7 @@ class LedgerWrapper {
   /**
    * Checks if specified price type is supported by ledger-cli
    * @param {String} priceType
-   * @return {Boolean} whether priceType is supported
+   * @return {boolean} whether priceType is supported
    */
   static validatePriceType(priceType) {
     return ['market', 'balance'].includes(priceType);
